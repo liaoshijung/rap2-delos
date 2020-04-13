@@ -2,12 +2,13 @@ import { Repository, Interface, Module, Property } from '../../models'
 import dedent from '../../helpers/dedent'
 import * as moment from 'moment'
 import { asTree } from 'treeify'
+import Tree from "../../routes/utils/tree"
 
 const arrayToTree = (list: any[]): any => {
   const getValue = (parent: any) => {
     const children = list.filter((item: any) => item.parentId === parent.id)
     if (!children.length) {
-      return `${parent.type} ${parent.description ? `(${parent.description})` : ''}`
+      return `${parent.type}` + '|' + ` ${parent.required == '1' ? 'true' : 'false' } ` + '|' + ` ${parent.description ? `(${parent.description})` : ''}`
     }
     const obj: { [k: string]: any } = {}
     children.forEach((e: any) => {
@@ -72,11 +73,23 @@ export default class PostmanService {
         ${asTree(arrayToTree(intf.properties.filter(item => item.scope === 'request')), true, undefined)}
         \`\`\`
 
+        * 请求接口模板：
+
+        \`\`\`\`json
+        ${Tree.stringifyWithFunctonAndRegExp(Tree.ArrayToTreeToTemplate(intf.properties.filter(item => item.scope === 'request')))}
+        \`\`\`\`
+
         * 返回接口格式：
 
         \`\`\`
         ${asTree(arrayToTree(intf.properties.filter(item => item.scope === 'response')), true, undefined)}
         \`\`\`
+
+        * 返回接口模板：
+
+        \`\`\`\`json
+        ${Tree.stringifyWithFunctonAndRegExp(Tree.ArrayToTreeToTemplate(intf.properties.filter(item => item.scope === 'response')))}
+        \`\`\`\`
       `
         )
         .join('\n\n\n')}
