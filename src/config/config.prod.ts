@@ -29,6 +29,7 @@ let config: IConfigOptions = {
   redis: {
     host: process.env.REDIS_URL || 'localhost',
     port: (process.env.REDIS_PORT && parseInt(process.env.REDIS_PORT)) || 6379,
+    // password: ''
   },
   mail: {
     host: process.env.MAIL_HOST ?? 'smtp.aliyun.com',
@@ -38,6 +39,9 @@ let config: IConfigOptions = {
       user: process.env.MAIL_USER ?? 'rap2org@service.alibaba.com',
       pass: process.env.MAIL_PASS ?? '',
     },
+  },
+  ldapLogin: {
+    server: 'ldap:172.10.254.2:389/dc=foxhis,dc=local'
   },
   mailSender: process.env.MAIL_SENDER ?? 'rap2org@service.alibaba.com',
 }

@@ -24,7 +24,11 @@ let config: IConfigOptions = {
     },
     logging: false
   },
-  redis: {},
+  redis: {
+    host: process.env.REDIS_URL || 'localhost',
+    port: (process.env.REDIS_PORT && parseInt(process.env.REDIS_PORT)) || 6379,
+    // password: ''
+  },
   mail: {
     host: 'smtp-mail.outlook.com',
     port: 587,
@@ -35,6 +39,9 @@ let config: IConfigOptions = {
     }
   },
   mailSender: '',
+  ldapLogin: {
+    server: 'ldap:172.10.254.2:389/dc=foxhis,dc=local'
+  },
 }
 
 export default config
