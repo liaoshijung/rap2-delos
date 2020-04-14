@@ -71,8 +71,17 @@ export class MockService {
         ...ctx.request.query,
         ...ctx.request.body,
       }
-      const paramsKeysCnt = Object.keys(params).length
+      const paramsKeys = Object.keys(params)
+      let method = ''
+      if (paramsKeys.indexOf("method") > -1) {
+        method = params.method
+      }
+
+      const paramsKeysCnt = paramsKeys.length
       matchedItfList = matchedItfList.filter(x => {
+        if (method && x.name === method) {
+          return true
+        }
         const parsedUrl = urlPkg.parse(x.url)
         const pairs = parsedUrl.query ? parsedUrl.query.split('&').map(x => x.split('=')) : []
         // 接口没有定义参数时看请求是否有参数
