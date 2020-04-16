@@ -40,7 +40,7 @@ let config: IConfigOptions = {
   },
   mailSender: '',
   ldapLogin: {
-    server: 'ldap:172.10.254.2:389/dc=foxhis,dc=local'
+    server: process.env.LDAP_SERVER ?? 'ldap://127.0.0.1',
   },
 }
 
