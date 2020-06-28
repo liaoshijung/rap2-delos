@@ -80,49 +80,45 @@ router.get('/account/info', async (ctx) => {
 })
 
 router.post('/account/login', async (ctx) => {
-  let { email, password, captcha, type } = ctx.request.body
+  let { email, password, type } = ctx.request.body
   let result, errMsg
   let username = email
-  if (process.env.TEST_MODE !== 'true' &&
-    (!captcha || !ctx.session.captcha || captcha.trim().toLowerCase() !== ctx.session.captcha.toLowerCase())) {
-    errMsg = '错误的验证码'
-  } else {
-    if (type === 'ldap') {
-      await ldapQuery({ username, password}).then(async (ldapResult) => {
-        if (ldapResult.success) {
 
-          let ldapMail = ldapResult.mail
-          let fullname = ldapResult.name
-          result = await User.findOne({
-            where: { email: ldapMail },
-          })
-          if (!result) {
-            result = await User.create({ fullname, email: ldapMail, password: md5(md5(password)) })
-          }
-          ctx.session.id = result.id
-          ctx.session.fullname = result.fullname
-          ctx.session.email = result.email
-          let app: any = ctx.app
-          app.counter.users[result.fullname] = true
+  if (type === 'ldap') {
+    await ldapQuery({ username, password}).then(async (ldapResult) => {
+      if (ldapResult.success) {
 
-        } else {
-          errMsg = ldapResult.errorMessage
+        let ldapMail = ldapResult.mail
+        let fullname = ldapResult.name
+        result = await User.findOne({
+          where: { email: ldapMail },
+        })
+        if (!result) {
+          result = await User.create({ fullname, email: ldapMail, password: md5(md5(password)) })
         }
-      })
-    } else {
-      result = await User.findOne({
-        attributes: QueryInclude.User.attributes,
-        where: { email, password: md5(md5(password)) },
-      })
-      if (result) {
         ctx.session.id = result.id
         ctx.session.fullname = result.fullname
         ctx.session.email = result.email
         let app: any = ctx.app
         app.counter.users[result.fullname] = true
+
       } else {
-        errMsg = '账号或密码错误'
+        errMsg = ldapResult.errorMessage
       }
+    })
+  } else {
+    result = await User.findOne({
+      attributes: QueryInclude.User.attributes,
+      where: { email, password: md5(md5(password)) },
+    })
+    if (result) {
+      ctx.session.id = result.id
+      ctx.session.fullname = result.fullname
+      ctx.session.email = result.email
+      let app: any = ctx.app
+      app.counter.users[result.fullname] = true
+    } else {
+      errMsg = '账号或密码错误'
     }
   }
   ctx.body = {
