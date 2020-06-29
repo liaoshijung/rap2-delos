@@ -52,6 +52,9 @@ export default class Module extends Model<Module> {
   @Column(DataType.TEXT)
   description: string
 
+  @Column(DataType.STRING(256))
+  url: string
+
   @AllowNull(false)
   @Default(1)
   @Column(DataType.BIGINT())
