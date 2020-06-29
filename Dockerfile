@@ -13,8 +13,8 @@ COPY package.json ./
 RUN npm config set registry https://registry.npm.taobao.org/
 
 # instal dependencies
-RUN npm install typescript -g && npm install cnpm -g && \
-    cnpm install
+RUN npm install typescript -g && \
+    npm install
 
 # build
 COPY . ./
