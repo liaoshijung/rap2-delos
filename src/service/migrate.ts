@@ -783,7 +783,7 @@ export default class MigrateService {
               moduleId: mod.id,
               name: `${apiObj.summary}`,
               description: apiObj.description,
-              url: `https//${host}${url.replace('-test', '')}`,
+              url: `${url.replace('-test', '')}`,
               priority: iCounter++,
               creatorId: curUserId,
               repositoryId: repositoryId,
