@@ -238,6 +238,8 @@ const transformRapParams = p => {
     type = 'double'
   } else if (format === 'date' || format === 'date-time') {
     type = 'date'
+  } else if (format === 'int64') {
+    type = 'long'
   }
   type = type[0].toUpperCase() + type.slice(1)
 
@@ -272,6 +274,7 @@ const transformRapParams = p => {
   value = p.default || ''
   if (!p.default && p.type === 'string') value = '@ctitle'
   if (!p.default && (p.type === 'integer')) value = '@integer(0, 100000)'
+  if (!p.default && (p.type === 'long')) value = '@integer(0, 1000000000)'
   if (!p.default && (p.format === 'double')) value = '@float(0, 100000,2,2)'
   if (p.type === 'boolean') {
     value = p.default === true || p.default === false ? p.default.toString() : 'false'
