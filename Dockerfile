@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package.json ./
 
 # 在国内打开下面一行加速
-#RUN npm config set registry https://registry.npm.taobao.org/
+RUN npm config set registry https://registry.npm.taobao.org/
 
 # instal dependencies
 RUN npm install typescript -g && \

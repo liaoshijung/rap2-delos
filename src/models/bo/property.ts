@@ -4,6 +4,12 @@ import { User, Interface, Module, Repository } from '../'
 export enum SCOPES { REQUEST = 'request', RESPONSE = 'response', SCRIPT = 'script' }
 export enum TYPES { STRING = 'String', NUMBER = 'Number', LONG = 'Long', DOUBLE = 'Double', DATE = 'Date', BOOLEAN = 'Boolean', OBJECT = 'Object', ARRAY = 'Array', FUNCTION = 'Function', REGEXP = 'RegExp', Null = 'Null' }
 
+export enum REQUEST_PARAMS_TYPE {
+  HEADERS = 1,
+  QUERY_PARAMS = 2,
+  BODY_PARAMS = 3,
+}
+
 @Table({ paranoid: true, freezeTableName: false, timestamps: true })
 export default class Property extends Model<Property> {
   public static TYPES = TYPES
