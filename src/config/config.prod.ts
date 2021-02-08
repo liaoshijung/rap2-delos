@@ -40,7 +40,10 @@ let config: IConfigOptions = {
       pass: process.env.MAIL_PASS ?? '',
     },
   },
-  mailSender: process.env.MAIL_SENDER ?? "rap2org@service.alibaba.com"
+  ldapLogin: {
+    server: process.env.LDAP_SERVER ?? 'ldap://127.0.0.1',
+  },
+  mailSender: process.env.MAIL_SENDER ?? 'rap2org@service.alibaba.com',
 }
 
 export default config

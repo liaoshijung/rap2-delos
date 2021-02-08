@@ -503,19 +503,20 @@ router.post('/module/create', isLoggedIn, async (ctx, next) => {
 })
 
 router.post('/module/update', isLoggedIn, async (ctx, next) => {
-  const { id, name, description } = ctx.request.body
+  const { id, name, description, url } = ctx.request.body
   if (!await AccessUtils.canUserAccess(ACCESS_TYPE.MODULE_SET, ctx.session.id, +id)) {
     ctx.body = Consts.COMMON_ERROR_RES.ACCESS_DENY
     return
   }
   let mod = await Module.findByPk(id)
-  await mod.update({ name, description })
+  await mod.update({name, description, url})
   ctx.request.body.repositoryId = mod.repositoryId
   ctx.body = {
     data: {
       id,
       name,
-      description
+      description,
+      url
     },
   }
   return next()

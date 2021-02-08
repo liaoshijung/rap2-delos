@@ -69,8 +69,42 @@ export default class Tree {
             break
           case 'Number':
             if (value === '') value = 1
-            let parsed = parseFloat(value)
+            let parsed = parseInt(value)
             if (!isNaN(parsed)) value = parsed
+            result[item.name + rule] = value
+            break
+          case 'Long':
+            if (value === '') value = 1
+            let longParsed = parseFloat(value)
+            if (!isNaN(longParsed)) value = longParsed
+            result[item.name + rule] = value
+            break
+          case 'Date':
+            let date = new Date()
+            let fmt = rule
+            if (rule === '') fmt = 'yyyy-MM-dd hh:mm:ss'
+            if (/(y+)/.test(fmt)) {
+              fmt = fmt.replace(RegExp.$1, (String(date.getFullYear())).substr(4 - RegExp.$1.length))
+            }
+            let o = {
+              'M+': date.getMonth() + 1,
+              'd+': date.getDate(),
+              'h+': date.getHours(),
+              'm+': date.getMinutes(),
+              's+': date.getSeconds()
+            }
+            for (let k in o) {
+              if (new RegExp(`(${k})`).test(fmt)) {
+                let str = String(o[k])
+                fmt = fmt.replace(RegExp.$1, RegExp.$1.length === 1 ? str : ('00' + str).substr(str.length))
+              }
+            }
+            result[item.name + rule] = fmt
+            break
+          case 'Double':
+            if (value === '') value = 1.00
+            let floatParsed = parseFloat(value)
+            if (!isNaN(floatParsed)) value = floatParsed
             result[item.name + rule] = value
             break
           case 'Boolean':
@@ -186,11 +220,12 @@ export default class Tree {
               let result = data.replace(pattern, extra[eKey])
               const p = propertyMap[key]
               if (p) {
-                if (p.type === 'Number') {
+                if (p.type === 'Number' || p.type === 'Long') {
                   result = +result || 1
+                } if (p.type === 'Double') {
+                  result = +result || 1.00
                 } else if (p.type === 'Boolean') {
                   result = result === 'true' || !!+result
-                }
               }
               data = node[key] = result
             }

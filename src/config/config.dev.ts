@@ -11,14 +11,12 @@ const config: IConfigOptions = {
     key: 'rap2:sess',
   },
   db: {
-    // dialect: 'mysql',
-    // host: process.env.MYSQL_URL || 'tddl.daily2.alibaba.net',
-    dialect: "mysql",
-    host: process.env.MYSQL_URL ?? "localhost",
+    dialect: 'mysql',
+    host: process.env.MYSQL_URL ?? '172.10.60.45',
     port: (process.env.MYSQL_PORT && parseInt(process.env.MYSQL_PORT)) || 3306,
-    username: process.env.MYSQL_USERNAME ?? "root",
-    password: process.env.MYSQL_PASSWD ?? "",
-    database: process.env.MYSQL_SCHEMA ?? "RAP2_DELOS_APP",
+    username: process.env.MYSQL_USERNAME ?? 'foxhis',
+    password: process.env.MYSQL_PASSWD ?? 'foxhis',
+    database: process.env.MYSQL_SCHEMA ?? 'RAP2_DELOS_APP',
     pool: {
       max: 10,
       min: 0,
@@ -29,7 +27,11 @@ const config: IConfigOptions = {
       connectTimeout: 20000
     }
   },
-  redis: {},
+  redis: {
+    host: process.env.REDIS_URL || '172.10.60.45',
+    port: (process.env.REDIS_PORT && parseInt(process.env.REDIS_PORT)) || 6379,
+    password: 'foxhis'
+  },
   mail: {
     host: process.env.MAIL_HOST ?? "smtp.aliyun.com",
     port: process.env.MAIL_PORT ?? 465,
@@ -38,6 +40,9 @@ const config: IConfigOptions = {
       user: process.env.MAIL_USER ?? "rap2org@service.alibaba.com",
       pass: process.env.MAIL_PASS ?? ""
     }
+  },
+  ldapLogin: {
+    server: process.env.LDAP_SERVER ?? 'ldap:172.10.254.2:389/dc=foxhis,dc=local',
   },
   mailSender: process.env.MAIL_SENDER ?? 'rap2org@service.alibaba.com',
 }

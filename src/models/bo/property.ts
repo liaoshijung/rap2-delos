@@ -2,7 +2,7 @@ import { Table, Column, Model, AutoIncrement, PrimaryKey, AllowNull, DataType, D
 import { User, Interface, Module, Repository } from '../'
 
 export enum SCOPES { REQUEST = 'request', RESPONSE = 'response', SCRIPT = 'script' }
-export enum TYPES { STRING = 'String', NUMBER = 'Number', BOOLEAN = 'Boolean', OBJECT = 'Object', ARRAY = 'Array', FUNCTION = 'Function', REGEXP = 'RegExp', Null = 'Null' }
+export enum TYPES { STRING = 'String', NUMBER = 'Number', LONG = 'Long', DOUBLE = 'Double', DATE = 'Date', BOOLEAN = 'Boolean', OBJECT = 'Object', ARRAY = 'Array', FUNCTION = 'Function', REGEXP = 'RegExp', Null = 'Null' }
 
 @Table({ paranoid: true, freezeTableName: false, timestamps: true })
 export default class Property extends Model<Property> {
@@ -27,7 +27,7 @@ export default class Property extends Model<Property> {
 
   @AllowNull(false)
   @Column({
-    type: DataType.ENUM(TYPES.STRING, TYPES.NUMBER, TYPES.BOOLEAN, TYPES.OBJECT, TYPES.ARRAY, TYPES.FUNCTION, TYPES.REGEXP, TYPES.Null),
+    type: DataType.ENUM(TYPES.STRING, TYPES.NUMBER, TYPES.LONG, TYPES.DOUBLE, TYPES.DATE, TYPES.BOOLEAN, TYPES.OBJECT, TYPES.ARRAY, TYPES.FUNCTION, TYPES.REGEXP, TYPES.Null),
     comment: 'property type',
   })
   /** Data Type */

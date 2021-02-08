@@ -234,7 +234,15 @@ const transformRapParams = p => {
 
   // 类型转化处理
   let type = p.type || 'string'
+  let format = p.format  || 'string'
   if (type === 'integer') type = 'number'
+  if (format === 'double') {
+    type = 'double'
+  } else if (format === 'date' || format === 'date-time') {
+    type = 'date'
+  } else if (format === 'int64') {
+    type = 'long'
+  }
   type = type[0].toUpperCase() + type.slice(1)
 
   // 规则属性说明处理
@@ -267,7 +275,9 @@ const transformRapParams = p => {
   // 默认值转化处理
   value = p.default || ''
   if (!p.default && p.type === 'string') value = '@ctitle'
-  if (!p.default && (p.type === 'number' || p.type === 'integer')) value = '@integer(0, 100000)'
+  if (!p.default && (p.type === 'integer')) value = '@integer(0, 100000)'
+  if (!p.default && (p.type === 'long')) value = '@integer(0, 1000000000)'
+  if (!p.default && (p.format === 'double')) value = '@float(0, 100000,2,2)'
   if (p.type === 'boolean') {
     value = p.default === true || p.default === false ? p.default.toString() : 'false'
   }
@@ -684,7 +694,7 @@ export default class MigrateService {
       }
     }
 
-    let { tags = [], paths = {}, host = '' } = swagger
+    let { tags = [], paths = {} } = swagger
     let pathTag: SwaggerTag[] = []
 
     // 获取所有的TAG: 处理ROOT TAG中没有的情况

@@ -12,7 +12,7 @@ import { AccessUtils } from './utils/access'
 import { COMMON_ERROR_RES } from './utils/const'
 import * as moment from 'moment'
 import RedisService, { CACHE_KEY, DEFAULT_CACHE_VAL } from '../service/redis'
-
+import ldapQuery from '../service/ldap'
 
 
 
@@ -60,6 +60,15 @@ router.get('/account/list', isLoggedIn, async (ctx) => {
   let total = await User.count(options)
   let limit = Math.min(ctx.query.limit ?? 10, 100)
   let pagination = new Pagination(total, ctx.query.cursor || 1, limit)
+  options = Object.assign(options, {
+    attributes: ['id', 'fullname', 'email'],
+    offset: pagination.start,
+    limit: pagination.limit,
+    order: [
+      ['id', 'DESC'],
+    ],
+  })
+  console.log(options)
   ctx.body = {
     data: await User.findAll({
       ...options, ...{
@@ -82,11 +91,32 @@ router.get('/account/info', async (ctx) => {
 })
 
 router.post('/account/login', async (ctx) => {
-  let { email, password, captcha } = ctx.request.body
+  let { email, password, type } = ctx.request.body
   let result, errMsg
-  if (process.env.TEST_MODE !== 'true' &&
-    (!captcha || !ctx.session.captcha || captcha.trim().toLowerCase() !== ctx.session.captcha.toLowerCase())) {
-    errMsg = '错误的验证码'
+  let username = email
+
+  if (type === 'ldap') {
+    await ldapQuery({ username, password}).then(async (ldapResult) => {
+      if (ldapResult.success) {
+
+        let ldapMail = ldapResult.mail
+        let fullname = ldapResult.name
+        result = await User.findOne({
+          where: { email: ldapMail },
+        })
+        if (!result) {
+          result = await User.create({ fullname, email: ldapMail, password: md5(md5(password)) })
+        }
+        ctx.session.id = result.id
+        ctx.session.fullname = result.fullname
+        ctx.session.email = result.email
+        let app: any = ctx.app
+        app.counter.users[result.fullname] = true
+
+      } else {
+        errMsg = ldapResult.errorMessage
+      }
+    })
   } else {
     result = await User.findOne({
       attributes: QueryInclude.User.attributes,

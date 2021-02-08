@@ -25,6 +25,9 @@ declare interface IConfigOptions {
   db: ISequelizeConfig,
   redis: any,
   mail: SMTPTransport,
+  ldapLogin: {
+    server: string
+  }
   mailSender: string,
 }
 
