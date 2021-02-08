@@ -694,7 +694,7 @@ export default class MigrateService {
       }
     }
 
-    let { tags = [], paths = {} } = swagger
+    let { tags = [], paths = {}, host = '' } = swagger
     let pathTag: SwaggerTag[] = []
 
     // 获取所有的TAG: 处理ROOT TAG中没有的情况

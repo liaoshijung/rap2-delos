@@ -222,17 +222,18 @@ export default class Tree {
               if (p) {
                 if (p.type === 'Number' || p.type === 'Long') {
                   result = +result || 1
-                } if (p.type === 'Double') {
+                }
+                if (p.type === 'Double') {
                   result = +result || 1.00
                 } else if (p.type === 'Boolean') {
                   result = result === 'true' || !!+result
+                }
+                data = node[key] = result
               }
-              data = node[key] = result
             }
           }
         }
       }
-
       recursivelyFillData(scopedData)
       data = _.pick(scopedData, keys)
     } else {

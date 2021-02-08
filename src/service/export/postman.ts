@@ -3,7 +3,6 @@ import { Repository, Interface, Module, Property } from "../../models"
 import * as url from 'url'
 import { POS_TYPE } from "../../models/bo/property"
 import UrlUtils from "../../routes/utils/url"
-import Tree from "../../routes/utils/tree"
 
 const SCHEMA_V_2_1_0 = 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'
 
@@ -79,8 +78,8 @@ export default class PostmanService {
 }
 
 function getBody(pList: Property[]) {
-  let requestProperties = pList.map((item: any) => item.toJSON())
-  let requestData = Tree.ArrayToTreeToTemplate(requestProperties)
+  // let requestProperties = pList.map((item: any) => item.toJSON())
+  // let requestData = Tree.ArrayToTreeToTemplate(requestProperties)
   return {
     "mode": "formdata" as "formdata",
     "formdata": pList.filter(x => x.pos === POS_TYPE.BODY)
