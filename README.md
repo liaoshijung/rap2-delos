@@ -1,6 +1,6 @@
 # RAP2-DELOS 开源社区版本 (后端 API 服务器)
 
-[![Build Status](https://travis-ci.org/thx/rap2-delos.svg?branch=master)](https://travis-ci.org/thx/rap2-delos)
+> 阿里妈妈 THX 团队新项目 GoGoCode：https://github.com/thx/gogocode 给批量修改项目代码减轻痛苦！
 
 RAP2 是在 RAP1 基础上重做的新项目，它能给你提供方便的接口文档管理、Mock、导出等功能，包含两个组件(对应两个 Github Repository)。
 
@@ -14,9 +14,9 @@ RAP2 是在 RAP1 基础上重做的新项目，它能给你提供方便的接口
 
 **有急事来官方钉钉群，响应更迅速: 31626736 (二群，一群已满）**
 
-***2019-10-31：现已支持 Docker 一键部署，欢迎大家体验&反馈***
+2019-10-31：现已支持 Docker 一键部署，欢迎大家体验&反馈
 
-***2019-09-27：更新的用户请注意按照下面指引安装 pandoc 以启用文档导出功能***
+2019-09-27：更新的用户请注意按照下面指引安装 pandoc 以启用文档导出功能
 
 
 ## 推荐使用 Docker 快速部署
@@ -164,6 +164,7 @@ npm start
 
 - [rap2-javabean 自动从 Rap 接口生成 Java Bean](https://github.com/IndiraFinish/rap2-javabean)
 - [rap2-generator 把 Java Bean 生成到 Rap](https://github.com/kings1990/rap2-generator)
+- [yapix 一键生成接口文档, 上传到yapi, rap2, eolinker等](https://github.com/jetplugins/yapix)
 
 ## Author
 

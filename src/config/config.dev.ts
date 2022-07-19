@@ -12,11 +12,11 @@ const config: IConfigOptions = {
   },
   db: {
     dialect: 'mysql',
-    host: process.env.MYSQL_URL ?? '172.10.60.45',
+    host: process.env.MYSQL_URL ?? '127.0.0.1',
     port: (process.env.MYSQL_PORT && parseInt(process.env.MYSQL_PORT)) || 3306,
-    username: process.env.MYSQL_USERNAME ?? 'foxhis',
-    password: process.env.MYSQL_PASSWD ?? 'foxhis',
-    database: process.env.MYSQL_SCHEMA ?? 'RAP2_DELOS_APP',
+    username: process.env.MYSQL_USERNAME ?? 'root',
+    password: process.env.MYSQL_PASSWD ?? '',
+    database: process.env.MYSQL_SCHEMA ?? 'rap2',
     pool: {
       max: 10,
       min: 0,
@@ -42,7 +42,7 @@ const config: IConfigOptions = {
     }
   },
   ldapLogin: {
-    server: process.env.LDAP_SERVER ?? 'ldap:172.10.254.2:389/dc=foxhis,dc=local',
+    server: process.env.LDAP_SERVER ?? 'ldap:127.0.0.1',
   },
   mailSender: process.env.MAIL_SENDER ?? 'rap2org@service.alibaba.com',
 }

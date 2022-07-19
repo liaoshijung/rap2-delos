@@ -52,7 +52,7 @@ router.get('/repository/list', async (ctx) => {
   let { name, user, organization } = ctx.query
 
   if (+organization > 0) {
-    const access = await AccessUtils.canUserAccess(ACCESS_TYPE.ORGANIZATION_GET, ctx.session.id, organization)
+    const access = await AccessUtils.canUserAccess(ACCESS_TYPE.ORGANIZATION_GET, ctx.session.id, +organization)
 
     if (access === false) {
       ctx.body = {
@@ -82,7 +82,7 @@ router.get('/repository/list', async (ctx) => {
       QueryInclude.Locker
     ]
   })
-  let limit = Math.min(ctx.query.limit ?? 10, 100)
+  let limit = Math.min(+ctx.query.limit ?? 10, 100)
   let pagination = new Pagination(total, ctx.query.cursor || 1, limit)
   let repositories = await Repository.findAll({
     where,
@@ -197,8 +197,8 @@ router.get('/repository/get', async (ctx) => {
   const access = await AccessUtils.canUserAccess(
     ACCESS_TYPE.REPOSITORY_GET,
     ctx.session.id,
-    ctx.query.id,
-    ctx.query.token
+    +ctx.query.id,
+    ctx.query.token as string
   )
   if (access === false) {
     ctx.body = {
@@ -211,15 +211,15 @@ router.get('/repository/get', async (ctx) => {
   const canUserEdit = await AccessUtils.canUserAccess(
     ACCESS_TYPE.REPOSITORY_SET,
     ctx.session.id,
-    ctx.query.id,
-    ctx.query.token,
+    +ctx.query.id,
+    ctx.query.token as string,
   )
   let repository: Partial<Repository> & {
     canUserEdit: boolean
   }
   // 分开查询减少查询时间
   let [repositoryOmitModules, repositoryModules] = await Promise.all([
-    Repository.findByPk(ctx.query.id, {
+    Repository.findByPk(+ctx.query.id, {
       attributes: { exclude: [] },
       include: [
         QueryInclude.Creator,
@@ -230,7 +230,7 @@ router.get('/repository/get', async (ctx) => {
         QueryInclude.Collaborators,
       ],
     }),
-    Repository.findByPk(ctx.query.id, {
+    Repository.findByPk(+ctx.query.id, {
       attributes: { exclude: [] },
       include: [
         excludeProperty
@@ -476,7 +476,7 @@ router.get('/module/list', async (ctx) => {
 
 router.get('/module/get', async (ctx) => {
   ctx.body = {
-    data: await Module.findByPk(ctx.query.id, {
+    data: await Module.findByPk(+ctx.query.id, {
       attributes: { exclude: [] }
     })
   }
@@ -564,7 +564,7 @@ router.get('/module/remove', isLoggedIn, async (ctx, next) => {
   return next()
 }, async (ctx) => {
   if (ctx.body.data === 0) return
-  let { id } = ctx.query
+  const id = +ctx.query.id
   let mod = await Module.findByPk(id, { paranoid: false })
   await Logger.create({
     userId: ctx.session.id,
@@ -616,14 +616,14 @@ router.get('/interface/list', async (ctx) => {
 })
 
 router.get('/repository/defaultVal/get/:id', async (ctx) => {
-  const repositoryId: number = ctx.params.id
+  const repositoryId: number = +ctx.params.id
   ctx.body = {
     data: await DefaultVal.findAll({ where: { repositoryId } })
   }
 })
 
 router.post('/repository/defaultVal/update/:id', async (ctx) => {
-  const repositoryId: number = ctx.params.id
+  const repositoryId: number = +ctx.params.id
   if (!await AccessUtils.canUserAccess(ACCESS_TYPE.REPOSITORY_SET, ctx.session.id, repositoryId)) {
     ctx.body = Consts.COMMON_ERROR_RES.ACCESS_DENY
     return
@@ -649,9 +649,9 @@ router.post('/repository/defaultVal/update/:id', async (ctx) => {
 })
 
 router.get('/interface/get', async (ctx) => {
-  let { id } = ctx.query
+  const id = +ctx.query.id
 
-  if (id === undefined || id === '') {
+  if (id === undefined || !id) {
     ctx.body = {
       isOk: false,
       errMsg: '请输入参数id'
@@ -785,7 +785,7 @@ router.post('/interface/move', isLoggedIn, async ctx => {
 })
 
 router.get('/interface/remove', async (ctx, next) => {
-  let { id } = ctx.query
+  let id = +ctx.query.id
   if (!await AccessUtils.canUserAccess(ACCESS_TYPE.INTERFACE_SET, ctx.session.id, +id)) {
     ctx.body = Consts.COMMON_ERROR_RES.ACCESS_DENY
     return
@@ -807,7 +807,7 @@ router.get('/interface/remove', async (ctx, next) => {
   return next()
 }, async (ctx) => {
   if (ctx.body.data === 0) return
-  let { id } = ctx.query
+  const id = +ctx.query.id
   let itf = await Interface.findByPk(id, { paranoid: false })
   await Logger.create({
     userId: ctx.session.id,
@@ -929,7 +929,7 @@ router.get('/property/list', async (ctx) => {
 })
 
 router.get('/property/get', async (ctx) => {
-  let { id } = ctx.query
+  const id = +ctx.query.id
   ctx.body = {
     data: await Property.findByPk(id, {
       attributes: { exclude: [] }
@@ -1099,7 +1099,7 @@ router.post('/properties/update', isLoggedIn, async (ctx, next) => {
   return next()
 }, async (ctx) => {
   if (ctx.body.data === 0) return
-  let itf = await Interface.findByPk(ctx.query.itf, {
+  let itf = await Interface.findByPk(ctx.query.itf as string, {
     attributes: { exclude: [] }
   })
   await Logger.create({
@@ -1113,7 +1113,7 @@ router.post('/properties/update', isLoggedIn, async (ctx, next) => {
 
 router.get('/property/remove', isLoggedIn, async (ctx) => {
   let { id } = ctx.query
-  if (!await AccessUtils.canUserAccess(ACCESS_TYPE.PROPERTY_SET, ctx.session.id, id)) {
+  if (!await AccessUtils.canUserAccess(ACCESS_TYPE.PROPERTY_SET, ctx.session.id, +id)) {
     ctx.body = Consts.COMMON_ERROR_RES.ACCESS_DENY
     return
   }
@@ -1247,4 +1247,11 @@ router.get('/interface/history/JSONData/:id', isLoggedIn, async ctx => {
   ctx.set('Content-disposition', `attachment; filename=history_log_detail_data_${historyLogId}`)
   ctx.set('Content-type', 'text/html; charset=UTF-8')
   ctx.body = await RepositoryService.getHistoryLogJSONData(historyLogId)
+})
+
+router.get('/interface/backup/JSONData/:id', isLoggedIn, async ctx => {
+  const itfId = +ctx.params.id
+  ctx.set('Content-disposition', `attachment; filename=interface_backup_${itfId}`)
+  ctx.set('Content-type', 'text/html; charset=UTF-8')
+  ctx.body = await RepositoryService.getInterfaceJSONData(itfId)
 })
