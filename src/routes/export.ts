@@ -6,7 +6,89 @@ import MarkdownService from '../service/export/markdown'
 import * as moment from 'moment'
 import DocxService from '../service/export/docx'
 import { AccessUtils, ACCESS_TYPE } from './utils/access'
-import { Repository } from '../models/'
+import { Interface, Module, QueryInclude, Repository } from '../models/'
+import Tree from "./utils/tree"
+
+const generateModulePlugin = (protocol: any, host: any, module: Module) => {
+  function parseItemType(item: any) {
+    let append = item.required ? '' : '?'
+    let name = toCamelUpperCase(item.name) + append
+    switch (item.type) {
+      case 'String':
+      case 'Date':
+        return `${name}: string`
+      case 'Number':
+      case 'Long':
+      case 'Double':
+        return `${name}: number`
+      case 'Boolean':
+        return `${name}: boolean`
+      case 'Function':
+      case 'RegExp':
+        return `${name}: never`
+      case 'Object':
+        if (item.children) {
+          return `${name}:{
+             ${item.children.map((child: any) => {return parseItemType(child)}).join('\n          ')}
+          }`
+        } else {
+          return `${name}: any`
+        }
+      case 'Array':
+        if (item.children) {
+          return `${name}:[{
+             ${item.children.map((child: any) => {return parseItemType(child)}).join('\n          ')}
+             }]`
+        } else {
+          return `${name}: any[]`
+        }
+      case 'Null':
+        return `${name}: null`
+      default:
+        return ``
+    }
+  }
+  // DONE 2.3 protocol 错误，应该是 https
+  let editor = `${protocol}://rap2.devops.foxhis.com/repository/editor?id=${module.repositoryId}&mod=${module.id}` // [TODO] replaced by cur domain
+  let moduleName = module.urlName ? module.urlName : "module" + module.id
+  let result = `
+/**
+ * 仓库    RepositoryId:${module.repositoryId} 模块 #${module.id} ${module.name}
+ * 在线编辑 ${editor}
+ * 仓库数据 ${protocol}://${host}/repository/get?id=${module.repositoryId}
+ */
+  //import {APISchema, BaseRequest, BaseResponse} from "@/common/axios/type";
+
+  export const ${moduleName}Interfaces = {
+    ${module.interfaces.map((itf: Interface) =>
+      `${itf.urlName}:{ id: ${itf.id}, name: '${itf.name}', method: '${itf.method}', path: '${itf.url}'}`
+  ).join(',\n    ')}
+  }
+  declare namespace ${moduleName}{
+    ${module.interfaces.map((itf: Interface) =>
+      `interface ${toCamelUpperCase(itf.urlName)}Request extends BaseRequest{
+      ${itf.request.children.map((child: any) => parseItemType(child)).join('\n      ')}
+    }
+    interface ${toCamelUpperCase(itf.urlName)}Response extends BaseResponse{
+      ${itf.response.children.map((child: any) => parseItemType(child)).join('\n      ')}
+    }
+    `
+  ).join('\n    ')}
+    interface ${moduleName}APISchema extends APISchema {
+    ${module.interfaces.map((itf: Interface) =>
+      `    ${itf.urlName}:{ request: ${itf.urlName}Request,response: ${itf.urlName}Response }`
+  ).join('\n    ')}
+    }
+  }
+`
+  return result
+}
+const toCamelUpperCase = (str: string) => {
+  const reg = /_|-(\w)/g
+  return str.replace(reg, function (_a, b) {
+    return b.toUpperCase()
+  })
+}
 
 router.get('/export/postman', async ctx => {
   const repoId = +ctx.query.id
@@ -82,6 +164,64 @@ router.get('/export/docx', async ctx => {
     'Content-type',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   )
+})
+router.get('/export/interface', async (ctx) => {
+  const repoId = +ctx.query.id
+  const token = ctx.query.token
+  if (
+      !(await AccessUtils.canUserAccess(
+          ACCESS_TYPE.REPOSITORY_GET,
+          ctx.session.id,
+          repoId,
+          token
+      ))
+  ) {
+    ctx.body = COMMON_ERROR_RES.ACCESS_DENY
+    return
+  }
+  if (!(repoId > 0)) {
+    ctx.data = COMMON_ERROR_RES.ERROR_PARAMS
+  }
+  const repository = await Repository.findByPk(repoId)
+  const moduleId = ctx.query.mod
+  let moduleIds = new Set<number>(moduleId.split(',').map((item: string) => +item).filter((item: any) => item)) // _.uniq() => Set
+  let result = []
+  for (let id of moduleIds) {
+    let module = await Module.findByPk(id, {
+      attributes: { exclude: [] },
+    } as any)
+    if (!module) continue
+    module.interfaces = await Interface.findAll<Interface>({
+      attributes: { exclude: [] },
+      where: {
+        repositoryId: module.repositoryId,
+        moduleId: module.id
+      },
+      include: [
+        QueryInclude.Properties,
+      ],
+    } as any)
+    if (module.url) {
+      module.urlName = toCamelUpperCase(module.url.substr(1))
+    }
+    module.interfaces.forEach(itf => {
+      itf.urlName = toCamelUpperCase(itf.url.substr(itf.url.lastIndexOf('/') + 1))
+      itf.request = Tree.ArrayToTree(itf.properties.filter(item => item.scope === 'request'))
+      itf.response = Tree.ArrayToTree(itf.properties.filter(item => item.scope === 'response'))
+    })
+    // 修复 协议总是 http
+    // https://lark.alipay.com/login-session/unity-login/xp92ap
+    let protocol = ctx.headers['x-client-scheme'] || ctx.protocol
+    result.push(generateModulePlugin(protocol, ctx.host, module))
+  }
+  ctx.set(
+      'Content-Disposition',
+      `attachment; filename="RAP-${encodeURI(
+          repository.name
+      )}-${repoId}-${moduleId}.d.ts"`
+  )
+  ctx.type = 'application/javascript; charset=utf-8'
+  ctx.body = result.join('\n')
 })
 
 // router.get('/export/pdf', async ctx => {

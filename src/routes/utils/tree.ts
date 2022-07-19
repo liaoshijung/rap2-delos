@@ -1,7 +1,8 @@
 import { Property } from '../../models'
 import * as _ from 'underscore'
-const { VM } = require('vm2')
 import * as Mock from 'mockjs'
+
+const { VM } = require('vm2')
 const { RE_KEY } = require('mockjs/src/mock/constant')
 
 export default class Tree {
@@ -39,6 +40,56 @@ export default class Tree {
       result.depth,
     )
 
+    return result
+  }
+
+  public static TreeToSchema(tree: any) {
+    function parse(item: any, result: any) {
+      let required = item.required
+      let append = required !== '1' ? '?' : ''
+      switch (item.type) {
+        case 'String':
+        case 'Date':
+          result[item.name + append] = 'string'
+          break
+        case 'Number':
+        case 'Long':
+        case 'Double':
+          result[item.name + append] = 'number'
+          break
+        case 'Boolean':
+          result[item.name + append] = 'boolean'
+          break
+        case 'Function':
+        case 'RegExp':
+          result[item.name + append] = 'never'
+          break
+        case 'Object':
+          if (item.children) {
+            result[item.name] = {}
+            item.children.forEach((child: any) => {
+              parse(child, result[item.name])
+            })
+          } else {
+            result[item.name + append] = 'any'
+          }
+              break
+        case 'Array':
+          result[item.name] = item.children.length ? [{}] : 'any[]'
+          item.children.forEach((child: any) => {
+            parse(child, result[item.name][0])
+          })
+          break
+        case 'Null':
+          // tslint:disable-next-line: no-null-keyword
+          result[item.name + append] = null
+          break
+      }
+    }
+    let result = {}
+    tree.children.forEach((child: any) => {
+      parse(child, result)
+    })
     return result
   }
 
@@ -183,6 +234,11 @@ export default class Tree {
       console.error(err)
       return {}
     }
+  }
+
+  public static ArrayToTreeToSchema(list: Property[]) {
+    let tree = Tree.ArrayToTree(list)
+    return Tree.TreeToSchema(tree)
   }
 
   public static ArrayToTreeToTemplate(list: Property[]) {

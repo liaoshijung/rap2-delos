@@ -49,8 +49,9 @@ export default class Interface extends Model<Interface> {
 
   public static METHODS = methods
 
-  public request?: object
-  public response?: object
+  public request?: any
+  public response?: any
+  public urlName?: string
 
   @AutoIncrement
   @PrimaryKey

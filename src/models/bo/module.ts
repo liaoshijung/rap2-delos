@@ -7,6 +7,9 @@ const Op = Sequelize.Op
 
 @Table({ paranoid: true, freezeTableName: false, timestamps: true })
 export default class Module extends Model<Module> {
+
+  public urlName?: string
+
 /** hooks */
   @BeforeCreate
   @BeforeUpdate
