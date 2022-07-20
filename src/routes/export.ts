@@ -167,7 +167,7 @@ router.get('/export/docx', async ctx => {
 })
 router.get('/export/interface', async (ctx) => {
   const repoId = +ctx.query.id
-  const token = ctx.query.token
+  const token = (<string>ctx.query.token)
   if (
       !(await AccessUtils.canUserAccess(
           ACCESS_TYPE.REPOSITORY_GET,
@@ -184,7 +184,7 @@ router.get('/export/interface', async (ctx) => {
   }
   const repository = await Repository.findByPk(repoId)
   const moduleId = ctx.query.mod
-  let moduleIds = new Set<number>(moduleId.split(',').map((item: string) => +item).filter((item: any) => item)) // _.uniq() => Set
+  let moduleIds = new Set<number>((<string>moduleId).split(',').map((item: string) => +item).filter((item: any) => item)) // _.uniq() => Set
   let result = []
   for (let id of moduleIds) {
     let module = await Module.findByPk(id, {

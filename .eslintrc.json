@@ -1,5 +1,5 @@
 {
-  "tslint.enable": true,
+  "extends": ["plugin:@typescript-eslint/recommended"],
   "rules": {
     "class-name": true,
     "comment-format": [
@@ -63,7 +63,6 @@
     "no-internal-module": true,
     "no-trailing-whitespace": true,
     "no-null-keyword": false,
-    "prefer-const": false,
     "jsdoc-format": true
   }
 }

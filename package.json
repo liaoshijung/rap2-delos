@@ -92,7 +92,8 @@
     "@types/request-promise": "^4.1.45",
     "@types/sequelize": "^4.28.8",
     "@types/underscore": "^1.9.4",
-    "babel-eslint": "^10.1.0",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
     "chai": "^4.2.0",
     "mocha": "^8.0.1",
     "nodemon": "^2.0.2",
@@ -103,7 +104,7 @@
     "source-map-support": "^0.5.16",
     "standard": "^14.3.1",
     "supertest": "^4.0.2",
-    "tslint": "^6.0.0",
+    "eslint": "^7.32.0",
     "typescript": "^3.8.3"
   },
   "pre-commit": [
