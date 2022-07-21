@@ -1,7 +1,7 @@
 {
   "extends": ["plugin:@typescript-eslint/recommended"],
   "rules": {
-    "class-name": true,
+    "class-name": 1,
     "comment-format": [
       true,
       "check-space"
