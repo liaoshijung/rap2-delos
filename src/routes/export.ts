@@ -6,7 +6,7 @@ import MarkdownService from '../service/export/markdown'
 import * as moment from 'moment'
 import DocxService from '../service/export/docx'
 import { AccessUtils, ACCESS_TYPE } from './utils/access'
-import { Interface, Module, QueryInclude, Repository } from '../models/'
+import {Interface, Module, Property, QueryInclude, Repository} from '../models/'
 import Tree from "./utils/tree"
 
 const generateModulePlugin = (protocol: any, host: any, module: Module) => {
@@ -57,7 +57,6 @@ const generateModulePlugin = (protocol: any, host: any, module: Module) => {
  * 在线编辑 ${editor}
  * 仓库数据 ${protocol}://${host}/repository/get?id=${module.repositoryId}
  */
-  //import {APISchema, BaseRequest, BaseResponse} from "@/common/axios/type";
 
   export const ${moduleName}Interfaces = {
     ${module.interfaces.map((itf: Interface) =>
@@ -84,10 +83,14 @@ const generateModulePlugin = (protocol: any, host: any, module: Module) => {
   return result
 }
 const toCamelUpperCase = (str: string) => {
-  const reg = /_|-(\w)/g
-  return str.replace(reg, function (_a, b) {
-    return b.toUpperCase()
-  })
+  const reg = /(_|-)(\w)/g
+  if(str.includes("_")||str.includes("-")){
+    return str.replace(reg, function (_a, _b,c) {
+      return c.toUpperCase()
+    })
+  }else{
+    return str
+  }
 }
 
 router.get('/export/postman', async ctx => {
@@ -184,23 +187,73 @@ router.get('/export/interface', async (ctx) => {
   }
   const repository = await Repository.findByPk(repoId)
   const moduleId = ctx.query.mod
-  let moduleIds = new Set<number>((<string>moduleId).split(',').map((item: string) => +item).filter((item: any) => item)) // _.uniq() => Set
-  let result = []
-  for (let id of moduleIds) {
-    let module = await Module.findByPk(id, {
-      attributes: { exclude: [] },
-    } as any)
-    if (!module) continue
-    module.interfaces = await Interface.findAll<Interface>({
-      attributes: { exclude: [] },
-      where: {
-        repositoryId: module.repositoryId,
-        moduleId: module.id
-      },
+  let modules = [];
+  if(moduleId){
+    let moduleIds = new Set<number>((<string>moduleId).split(',').map((item: string) => +item).filter((item: any) => item)) // _.uniq() => Set
+    for (let id of moduleIds){
+      let module = await Module.findByPk(id, {
+        attributes: { exclude: [] },
+      } as any)
+      if (!module) continue
+      module.interfaces = await Interface.findAll<Interface>({
+        attributes: { exclude: [] },
+        where: {
+          repositoryId: module.repositoryId,
+          moduleId: module.id
+        },
+        include: [
+          QueryInclude.Properties,
+        ],
+      } as any)
+      modules.push(module);
+    }
+
+  }else{
+    const repo = await Repository.findByPk(repoId, {
       include: [
-        QueryInclude.Properties,
-      ],
-    } as any)
+        {
+          model: Module,
+          as: 'modules',
+          include: [
+            {
+              model: Interface,
+              as: 'interfaces',
+              include: [
+                {
+                  model: Property,
+                  as: 'properties'
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    })
+    if(repo){
+      modules = repo.modules
+    }
+  }
+  let result = []
+  let baseResult = `
+interface BaseRequest extends Record<string, any> {
+    groupid:string,
+    hotelid?:string,
+    username:string,
+    role?:string
+}
+
+interface BaseResponse extends Record<string, any> {
+    errorCode:string | '0',
+    errorMessage?:string,
+}
+
+type APISchema = Record<string, {
+    request: BaseRequest | void;
+    response: BaseResponse | any;
+}>;
+  `
+  result.push(baseResult)
+  for (let module of modules) {
     if (module.url) {
       module.urlName = toCamelUpperCase(module.url.substr(1))
     }
@@ -218,7 +271,7 @@ router.get('/export/interface', async (ctx) => {
       'Content-Disposition',
       `attachment; filename="RAP-${encodeURI(
           repository.name
-      )}-${repoId}-${moduleId}.d.ts"`
+      )}-${repoId}.d.ts"`
   )
   ctx.type = 'application/javascript; charset=utf-8'
   ctx.body = result.join('\n')
