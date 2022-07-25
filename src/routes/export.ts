@@ -61,7 +61,7 @@ const generateModulePlugin = (protocol: any, host: any,rpoName:string, module: M
   export namespace ${moduleName}{
     export const apis = {
     ${module.interfaces.map((itf: Interface) =>
-      `${itf.urlName}:{ server:${rpoName}, id: ${itf.id}, name: '${itf.name}', method: '${itf.method}', path: '${itf.url}'}`
+      `${itf.urlName}:{ server:'${rpoName}', id: ${itf.id}, name: '${itf.name}', method: '${itf.method}', path: '${itf.url}'}`
     ).join(',\n      ')}
     }
   
