@@ -9,7 +9,7 @@ import { AccessUtils, ACCESS_TYPE } from './utils/access'
 import {Interface, Module, Property, QueryInclude, Repository} from '../models/'
 import Tree from "./utils/tree"
 
-const generateModulePlugin = (protocol: any, host: any, module: Module) => {
+const generateModulePlugin = (protocol: any, host: any,rpoName:string, module: Module) => {
   function parseItemType(item: any) {
     let append = item.required ? '' : '?'
     let name = toCamelUpperCase(item.name) + append
@@ -58,22 +58,34 @@ const generateModulePlugin = (protocol: any, host: any, module: Module) => {
  * 仓库数据 ${protocol}://${host}/repository/get?id=${module.repositoryId}
  */
 
-  export const ${moduleName}Interfaces = {
+  export namespace ${moduleName}{
+    export const apis = {
     ${module.interfaces.map((itf: Interface) =>
-      `${itf.urlName}:{ id: ${itf.id}, name: '${itf.name}', method: '${itf.method}', path: '${itf.url}'}`
-  ).join(',\n    ')}
+      `${itf.urlName}:{ server:${rpoName}, id: ${itf.id}, name: '${itf.name}', method: '${itf.method}', path: '${itf.url}'}`
+    ).join(',\n      ')}
+    }
+  
+    ${module.interfaces.map((itf: Interface) =>{
+      let result = ``;
+      if(itf.request.children.length>0){
+        result= result +`export interface ${toCamelUpperCase(itf.urlName)}Request extends BaseRequest{
+      ${itf.request.children.map((child: any) => parseItemType(child)).join('\n  ')}
+    }\n    `
+      }else{
+        result= result +(`export type ${toCamelUpperCase(itf.urlName)}Request = BaseRequest\n  `)
+      }
+        if(itf.response.children.length>0){
+          result= result +(`export interface ${toCamelUpperCase(itf.urlName)}Response extends BaseResponse{
+      ${itf.response.children.map((child: any) => parseItemType(child)).join('\n  ')}
+    }`)
+        }else{
+          result= result +(`export type ${toCamelUpperCase(itf.urlName)}Response = BaseResponse\n  `)
+        }
+        return result
   }
-  declare namespace ${moduleName}{
-    ${module.interfaces.map((itf: Interface) =>
-      `interface ${toCamelUpperCase(itf.urlName)}Request extends BaseRequest{
-      ${itf.request.children.map((child: any) => parseItemType(child)).join('\n      ')}
-    }
-    interface ${toCamelUpperCase(itf.urlName)}Response extends BaseResponse{
-      ${itf.response.children.map((child: any) => parseItemType(child)).join('\n      ')}
-    }
-    `
+
   ).join('\n    ')}
-    interface ${moduleName}APISchema extends APISchema {
+    export interface ${moduleName}APISchema extends APISchema {
     ${module.interfaces.map((itf: Interface) =>
       `    ${itf.urlName}:{ request: ${itf.urlName}Request,response: ${itf.urlName}Response }`
   ).join('\n    ')}
@@ -265,13 +277,13 @@ type APISchema = Record<string, {
     // 修复 协议总是 http
     // https://lark.alipay.com/login-session/unity-login/xp92ap
     let protocol = ctx.headers['x-client-scheme'] || ctx.protocol
-    result.push(generateModulePlugin(protocol, ctx.host, module))
+    result.push(generateModulePlugin(protocol, ctx.host,repository.name, module))
   }
   ctx.set(
       'Content-Disposition',
       `attachment; filename="RAP-${encodeURI(
           repository.name
-      )}-${repoId}.d.ts"`
+      )}-${repoId}-${moduleId}.ts"`
   )
   ctx.type = 'application/javascript; charset=utf-8'
   ctx.body = result.join('\n')
