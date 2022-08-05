@@ -600,7 +600,8 @@ router.get('/interface/count', async (ctx) => {
 router.get('/interface/list', async (ctx) => {
   let where: any = {}
   let { repositoryId, moduleId, name } = ctx.query
-  if (!await AccessUtils.canUserAccess(ACCESS_TYPE.REPOSITORY_GET, ctx.session.id, +repositoryId)) {
+  if (!await AccessUtils.canUserAccess(ACCESS_TYPE.REPOSITORY_GET, ctx.session.id, +repositoryId,
+      ctx.query.token as string)) {
     ctx.body = Consts.COMMON_ERROR_RES.ACCESS_DENY
     return
   }
@@ -676,7 +677,8 @@ router.get('/interface/get', async (ctx) => {
     !(await AccessUtils.canUserAccess(
       ACCESS_TYPE.REPOSITORY_GET,
       ctx.session.id,
-      itf.repositoryId
+      itf.repositoryId,
+        ctx.query.token as string
     ))
   ) {
     ctx.body = Consts.COMMON_ERROR_RES.ACCESS_DENY
