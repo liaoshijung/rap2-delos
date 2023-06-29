@@ -36,9 +36,9 @@ const generateModulePlugin = (protocol: any, host: any,rpoName:string, module: M
         }
       case 'Array':
         if (item.children) {
-          return `${name}:[{
-             ${item.children.map((child: any) => {return parseItemType(child)}).join('\n          ')}
-             }]`
+          return `${name}:{
+            ${item.children.map((child: any) => {return parseItemType(child)}).join('\n          ')}
+            }[]`
         } else {
           return `${name}: any[]`
         }
@@ -250,7 +250,7 @@ router.get('/export/interface', async (ctx) => {
 interface BaseRequest extends Record<string, any> {
     groupid:string,
     hotelid?:string,
-    username:string,
+    username?:string,
     role?:string
 }
 
