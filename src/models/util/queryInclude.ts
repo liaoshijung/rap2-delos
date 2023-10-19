@@ -50,6 +50,13 @@ const QueryInclude: IQueryInclude = {
     through: { attributes: [] },
     required: false,
   },
+  Readers: {
+    model: User,
+    as: 'readers',
+    attributes: { exclude: ['password', ...Helper.exclude.generalities] },
+    through: { attributes: [] },
+    required: false,
+  },
   Repository: {
     model: Repository,
     as: 'repository',

@@ -1,5 +1,5 @@
 import { Table, Column, Model, HasMany, AutoIncrement, PrimaryKey, AllowNull, DataType, Unique, BelongsToMany } from 'sequelize-typescript'
-import { Organization, Repository, OrganizationsMembers, RepositoriesMembers } from '../'
+import { Organization, Repository, OrganizationsMembers, RepositoriesMembers, OrganizationsReaders } from '../'
 
 @Table({ paranoid: true, freezeTableName: false, timestamps: true })
 export default class User extends Model<User> {
@@ -26,6 +26,9 @@ export default class User extends Model<User> {
 
   @BelongsToMany(() => Organization, () => OrganizationsMembers)
   joinedOrganizations: Organization[]
+
+  @BelongsToMany(() => Organization, () => OrganizationsReaders)
+  viewedOrganizations: Organization[]
 
   @HasMany(() => Repository, 'ownerId')
   ownedRepositories: Repository[]

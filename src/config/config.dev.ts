@@ -12,10 +12,10 @@ const config: IConfigOptions = {
   },
   db: {
     dialect: 'mysql',
-    host: process.env.MYSQL_URL ?? '127.0.0.1',
+    host: process.env.MYSQL_URL ?? '192.168.8.15',
     port: (process.env.MYSQL_PORT && parseInt(process.env.MYSQL_PORT)) || 3306,
-    username: process.env.MYSQL_USERNAME ?? 'root',
-    password: process.env.MYSQL_PASSWD ?? '',
+    username: process.env.MYSQL_USERNAME ?? 'rap2',
+    password: process.env.MYSQL_PASSWD ?? 'rap2.foxdev',
     database: process.env.MYSQL_SCHEMA ?? 'rap2',
     pool: {
       max: 10,
@@ -28,8 +28,8 @@ const config: IConfigOptions = {
     }
   },
   redis: {
-    host: process.env.REDIS_URL || '172.10.60.45',
-    port: (process.env.REDIS_PORT && parseInt(process.env.REDIS_PORT)) || 6379,
+    host: process.env.REDIS_URL || '172.10.62.2',
+    port: (process.env.REDIS_PORT && parseInt(process.env.REDIS_PORT)) || 31865,
     password: 'foxhis'
   },
   mail: {
@@ -42,7 +42,7 @@ const config: IConfigOptions = {
     }
   },
   ldapLogin: {
-    server: process.env.LDAP_SERVER ?? 'ldap:127.0.0.1',
+    server: process.env.LDAP_SERVER ?? 'ldap:172.10.254.2:389/dc=foxhis,dc=local',
   },
   mailSender: process.env.MAIL_SENDER ?? 'rap2org@service.alibaba.com',
 }

@@ -35,16 +35,19 @@ export class AccessUtils {
       return false
     }
 
-    if (
-      accessType === ACCESS_TYPE.ORGANIZATION_GET ||
-      accessType === ACCESS_TYPE.ORGANIZATION_SET
-    ) {
-      return OrganizationService.canUserAccessOrganization(curUserId, entityId)
+    if (accessType === ACCESS_TYPE.ORGANIZATION_GET) {
+      let access = OrganizationService.canUserViewOrganization(curUserId, entityId)
+      return access
+    }else if(accessType === ACCESS_TYPE.ORGANIZATION_SET){
+      return OrganizationService.canUserAccessOrganizationSet(curUserId, entityId)
     } else if (
-      accessType === ACCESS_TYPE.REPOSITORY_GET ||
       accessType === ACCESS_TYPE.REPOSITORY_SET
     ) {
-      return RepositoryService.canUserAccessRepository(curUserId, entityId, token)
+      return RepositoryService.canUserAccessRepository(curUserId, entityId)
+    } else if (
+      accessType === ACCESS_TYPE.REPOSITORY_GET
+    ) {
+      return RepositoryService.canUserViewRepository(curUserId, entityId, token)
     } else if (accessType === ACCESS_TYPE.MODULE_GET || accessType === ACCESS_TYPE.MODULE_SET) {
       const mod = await Module.findByPk(entityId)
       return RepositoryService.canUserAccessRepository(curUserId, mod.repositoryId, token)

@@ -49,7 +49,8 @@ router.get('/organization/list', async (ctx) => {
     include: [
       QueryInclude.Creator,
       QueryInclude.Owner,
-      QueryInclude.Members
+      QueryInclude.Members,
+      QueryInclude.Readers
     ],
     order: [['updatedAt', 'desc']]
   }
@@ -75,7 +76,7 @@ router.get('/organization/owned', isLoggedIn, async (ctx) => {
   let options: any = {
     where,
     attributes: { exclude: [] },
-    include: [QueryInclude.Creator, QueryInclude.Owner, QueryInclude.Members],
+    include: [QueryInclude.Creator, QueryInclude.Owner, QueryInclude.Members, QueryInclude.Readers],
     order: [['updatedAt', 'DESC']],
   }
   let owned = await auth.$get('ownedOrganizations', options)
@@ -100,14 +101,16 @@ router.get('/organization/joined', isLoggedIn, async (ctx) => {
   let options: object = {
     where,
     attributes: { exclude: [] },
-    include: [QueryInclude.Creator, QueryInclude.Owner, QueryInclude.Members],
+    include: [QueryInclude.Creator, QueryInclude.Owner, QueryInclude.Members, QueryInclude.Readers],
     order: [['updatedAt', 'DESC']],
   }
   let joined = await auth.$get('joinedOrganizations', options)
+  let viewed = await auth.$get('viewedOrganizations', options)
+  let merged = joined.concat(viewed);
   // await auth.getOwnedOrganizations()
   // await auth.getJoinedOrganizations()
   ctx.body = {
-    data: joined,
+    data: merged,
     pagination: undefined,
   }
 })
@@ -119,7 +122,7 @@ router.get('/organization/get', async (ctx) => {
   }
   const organization = await Organization.findByPk(+ctx.query.id, {
     attributes: { exclude: [] },
-    include: [QueryInclude.Creator, QueryInclude.Owner, QueryInclude.Members],
+    include: [QueryInclude.Creator, QueryInclude.Owner, QueryInclude.Members, QueryInclude.Readers],
   } as any)
   ctx.body = {
     data: organization,
@@ -135,7 +138,7 @@ router.post('/organization/create', isLoggedIn, async (ctx) => {
   }
   let filled = await Organization.findByPk(created.id, {
     attributes: { exclude: [] },
-    include: [QueryInclude.Creator, QueryInclude.Owner, QueryInclude.Members],
+    include: [QueryInclude.Creator, QueryInclude.Owner, QueryInclude.Members, QueryInclude.Readers],
   } as any)
   ctx.body = {
     data: filled,
@@ -152,12 +155,17 @@ router.post('/organization/update', isLoggedIn, async (ctx, next) => {
   // DONE 2.2 支持转移团队
   // delete body.ownerId
   let updated = await Organization.update(body, { where: { id: body.id } })
+  let reloaded = await Organization.findByPk(body.id)
+
   if (body.memberIds) {
-    let reloaded = await Organization.findByPk(body.id)
     let members = await User.findAll({ where: { id: body.memberIds } })
     ctx.prevAssociations = await reloaded.$get('members')
     await reloaded.$set('members', members)
     ctx.nextAssociations = await reloaded.$get('members')
+  }
+  if (body.readerIds) {
+    let readers = await User.findAll({ where: { id: body.readerIds } })
+    await reloaded.$set('readers', readers)
   }
   ctx.body = {
     data: updated[0],

@@ -2,9 +2,9 @@ import { Repository, RepositoriesMembers, Interface, Property, Module, HistoryLo
 import { MoveOp } from '../models/bo/interface'
 import RedisService, { CACHE_KEY } from '../service/redis'
 import { AccessUtils, ACCESS_TYPE } from '../routes/utils/access'
-import OrganizationService from './organization'
 import { ENTITY_TYPE } from '../routes/utils/const'
 import { Op, col, fn } from 'sequelize'
+import OrganizationService from './organization'
 import { IPager } from '../types'
 
 export default class RepositoryService {
@@ -16,6 +16,7 @@ export default class RepositoryService {
     const repo = await Repository.findByPk(repositoryId)
     if (token && repo.token === token) return true
     if (!repo) return false
+    if (repo.creatorId === userId) return true
     if (repo.ownerId === userId) return true
     const memberExistsNum = await RepositoriesMembers.count({
       where: {
@@ -24,7 +25,28 @@ export default class RepositoryService {
       },
     })
     if (memberExistsNum > 0) return true
+    
     return OrganizationService.canUserAccessOrganization(userId, repo.organizationId)
+  }
+
+  public static async canUserViewRepository(
+    userId: number,
+    repositoryId: number,
+    token?: string,
+  ): Promise<boolean> {
+    const repo = await Repository.findByPk(repositoryId)
+    if (token && repo.token === token) return true
+    if (!repo) return false
+    if (repo.creatorId === userId) return true
+    if (repo.ownerId === userId) return true
+    const memberExistsNum = await RepositoriesMembers.count({
+      where: {
+        userId,
+        repositoryId,
+      },
+    })
+    if (memberExistsNum > 0) return true
+    return AccessUtils.canUserAccess(ACCESS_TYPE.ORGANIZATION_GET, userId, repo.organizationId)
   }
 
   public static async canUserMoveInterface(

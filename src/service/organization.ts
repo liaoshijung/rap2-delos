@@ -1,18 +1,18 @@
 import seq from '../models/sequelize'
 import Pagination from '../routes/utils/pagination'
 import Utils from './utils'
+import { Organization} from '../models'
 export default class OrganizationService {
   public static canUserAccessOrganization(userId: number, organizationId: number): Promise<boolean> {
     const sql = `
       SELECT COUNT(id) AS num FROM (
-        SELECT o.id, o.name
+        SELECT o.id
         FROM Organizations o
         WHERE ownerId = ${userId}
         UNION
-        SELECT o.id, o.name
-        FROM Organizations o
-        JOIN organizations_members om ON o.id = om.organizationId
-        WHERE om.userId = ${userId}
+        SELECT om.organizationId as id
+        FROM organizations_members om
+        WHERE om.userId = ${userId} 
       ) as result
       WHERE id = ${organizationId}
     `
@@ -21,6 +21,35 @@ export default class OrganizationService {
         resolve(+result[0].num > 0)
       })
     })
+  }
+
+  public static canUserViewOrganization(userId: number, organizationId: number): Promise<boolean> {
+    const sql = `
+      SELECT COUNT(id) AS num FROM (
+        SELECT o.id
+        FROM Organizations o
+        WHERE ownerId = ${userId}
+        UNION
+        SELECT om.organizationId as id
+        FROM organizations_members om
+        WHERE om.userId = ${userId} 
+        UNION
+        SELECT om.organizationId as id
+        FROM organizations_readers om
+        WHERE om.userId = ${userId} 
+      ) as result
+      WHERE id = ${organizationId}
+    `
+    return new Promise(resolve => {
+      seq.query(sql).spread((result: any) => {
+        resolve(+result[0].num > 0)
+      })
+    })
+  }
+
+  public static async canUserAccessOrganizationSet(userId: number, organizationId: number): Promise<boolean> {
+    const org = await Organization.findByPk(organizationId)
+    return org.ownerId === userId || org.creatorId === userId;
   }
 
   public static getAllOrganizationIdList(curUserId: number, pager: Pagination, query?: string): Promise<number[]> {

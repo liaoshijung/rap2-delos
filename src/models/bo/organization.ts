@@ -1,5 +1,5 @@
 import { Table, Column, Model, HasMany, AutoIncrement, PrimaryKey, AllowNull, DataType, Default, BelongsTo, BelongsToMany, ForeignKey, AfterCreate } from 'sequelize-typescript'
-import { User, Repository, OrganizationsMembers, Logger } from '../'
+import { User, Repository, OrganizationsMembers,OrganizationsReaders, Logger } from '../'
 
 @Table({ paranoid: true, freezeTableName: false, timestamps: true })
 export default class Organization extends Model<Organization> {
@@ -51,8 +51,14 @@ export default class Organization extends Model<Organization> {
   @BelongsToMany(() => User, () => OrganizationsMembers)
   members: User[]
 
+  @BelongsToMany(() => User, () => OrganizationsReaders)
+  readers: User[]
+
   @HasMany(() => OrganizationsMembers)
   organizationMembersList: OrganizationsMembers[]
+
+  @HasMany(() => OrganizationsReaders)
+  organizationReadersList: OrganizationsReaders[]
 
   @HasMany(() => Repository, 'organizationId')
   repositories: Repository[]
