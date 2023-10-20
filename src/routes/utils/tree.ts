@@ -110,7 +110,7 @@ export default class Tree {
       ) {
         try {
           result[item.name + rule] = vm.run(`(${item.value})`)
-        } catch (e) {
+        } catch (e:any) {
           result[item.name + rule] = item.value
         }
       } else {
@@ -169,7 +169,7 @@ export default class Tree {
           case 'RegExp':
             try {
               result[item.name + rule] = vm.run('(' + item.value + ')')
-            } catch (e) {
+            } catch (e:any) {
               console.warn(
                 `TreeToTemplate ${e.message}: ${item.type} { ${item.name}${rule}: ${item.value} }`,
               ) // TODO 2.2 怎么消除异常值？
@@ -180,7 +180,7 @@ export default class Tree {
             if (item.value) {
               try {
                 result[item.name + rule] = vm.run(`(${item.value})`)
-              } catch (e) {
+              } catch (e:any) {
                 result[item.name + rule] = item.value
               }
             } else {
@@ -194,7 +194,7 @@ export default class Tree {
             if (item.value) {
               try {
                 result[item.name + rule] = vm.run(`(${item.value})`)
-              } catch (e) {
+              } catch (e:any) {
                 result[item.name + rule] = item.value
               }
             } else {

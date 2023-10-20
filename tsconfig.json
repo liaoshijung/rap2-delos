@@ -8,7 +8,6 @@
     "target": "es2019",
     "removeComments": true,
     "sourceMap": true,
-    "watch": false,
     "baseUrl": "./src",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -16,8 +15,6 @@
     "skipLibCheck": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "noImplicitUseStrict": true,
-    "suppressImplicitAnyIndexErrors": true,
     "rootDir": "./src",
     "paths": {
       "*": [

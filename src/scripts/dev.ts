@@ -12,7 +12,7 @@ const start = () => {
     if (!open) return
     try {
       execSync(`osascript openChrome.applescript ${url}`, { cwd: __dirname, stdio: 'ignore' })
-    } catch (e) {
+    } catch (e:any) {
       execSync(`open ${url}`)
     }
   })
