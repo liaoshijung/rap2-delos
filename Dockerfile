@@ -1,5 +1,5 @@
 # BUILDING
-FROM node:lts-alpine AS builder
+FROM node:16.20.2 AS builder
 
 # base on work of llitfkitfk@gmail.com
 LABEL maintainer="chibing.fy@alibaba-inc.com"
@@ -23,7 +23,7 @@ COPY . ./
 RUN npm run build
 
 # RUNNING
-FROM node:lts-alpine
+FROM node:16.20.2
 
 # base on work of llitfkitfk@gmail.com
 LABEL maintainer="chibing.fy@alibaba-inc.com"

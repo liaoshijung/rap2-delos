@@ -2,6 +2,7 @@
   "extends": ["plugin:@typescript-eslint/recommended"],
   "rules": {
     "class-name": 1,
+    "ignorePatterns": ["node_modules/"],
     "comment-format": [
       true,
       "check-space"
@@ -64,5 +65,6 @@
     "no-trailing-whitespace": true,
     "no-null-keyword": false,
     "jsdoc-format": true
-  }
+  },
+  "ignorePatterns": ["node_modules/"]
 }
