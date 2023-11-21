@@ -35,6 +35,7 @@ export default class PostmanService {
     ***生成日期：${moment().format('YYYY-MM-DD HH:mm:ss')}***
 
     # 仓库：${repo.name}
+    # 说明：${repo.description}    
     ${repo.modules
       .map(
         m => dedent`

@@ -18,13 +18,16 @@ export default class RepositoryService {
     if (!repo) return false
     if (repo.creatorId === userId) return true
     if (repo.ownerId === userId) return true
-    const memberExistsNum = await RepositoriesMembers.count({
-      where: {
-        userId,
-        repositoryId,
-      },
-    })
-    if (memberExistsNum > 0) return true
+    if(userId){
+      const memberExistsNum = await RepositoriesMembers.count({
+        where: {
+          userId,
+          repositoryId,
+        },
+      })
+      if (memberExistsNum > 0) return true
+    }
+
     
     return OrganizationService.canUserAccessOrganization(userId, repo.organizationId)
   }
@@ -39,13 +42,15 @@ export default class RepositoryService {
     if (!repo) return false
     if (repo.creatorId === userId) return true
     if (repo.ownerId === userId) return true
-    const memberExistsNum = await RepositoriesMembers.count({
-      where: {
-        userId,
-        repositoryId,
-      },
-    })
-    if (memberExistsNum > 0) return true
+    if(userId){
+      const memberExistsNum = await RepositoriesMembers.count({
+        where: {
+          userId,
+          repositoryId,
+        },
+      })
+      if (memberExistsNum > 0) return true
+    }
     return AccessUtils.canUserAccess(ACCESS_TYPE.ORGANIZATION_GET, userId, repo.organizationId)
   }
 
