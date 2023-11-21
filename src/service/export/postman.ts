@@ -1,5 +1,6 @@
 import { PostmanCollection, Folder, Item } from "../../types/postman"
-import { Repository, Interface, Module, Property } from "../../models"
+import { Property } from "../../models"
+import RepositoryService from '../../service/repository'
 import * as url from 'url'
 import { POS_TYPE } from "../../models/bo/property"
 import UrlUtils from "../../routes/utils/url"
@@ -7,21 +8,8 @@ import UrlUtils from "../../routes/utils/url"
 const SCHEMA_V_2_1_0 = 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'
 
 export default class PostmanService {
-  public static async export(repositoryId: number): Promise<PostmanCollection> {
-    const repo = await Repository.findByPk(repositoryId, {
-      include: [{
-        model: Module,
-        as: 'modules',
-        include: [{
-          model: Interface,
-          as: 'interfaces',
-          include: [{
-            model: Property,
-            as: 'properties',
-          }]
-        }]
-      }]
-    })
+  public static async export(repositoryId: number,moduleId?:string): Promise<PostmanCollection> {
+    const repo = await RepositoryService.getRepositoryModuleData(repositoryId,moduleId);
     const result: PostmanCollection = {
       info: {
         name: `RAP2 Pack ${repo.name}`,

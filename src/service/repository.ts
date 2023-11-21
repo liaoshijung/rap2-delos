@@ -1,4 +1,4 @@
-import { Repository, RepositoriesMembers, Interface, Property, Module, HistoryLog, User } from '../models'
+import { Repository, RepositoriesMembers, Interface, Property, Module, HistoryLog, User, QueryInclude } from '../models'
 import { MoveOp } from '../models/bo/interface'
 import RedisService, { CACHE_KEY } from '../service/redis'
 import { AccessUtils, ACCESS_TYPE } from '../routes/utils/access'
@@ -214,6 +214,54 @@ export default class RepositoryService {
 
   public static async getHistoryLogJSONData(id: number) {
     return (await HistoryLog.findByPk(id))?.relatedJSONData
+  }
+
+  public static async getRepositoryModuleData(id: number, moduleId?: string) {
+    const repository = await Repository.findByPk(id)
+    let modules = [];
+    if (moduleId) {
+      let moduleIds = new Set<number>((<string>moduleId).split(',').map((item: string) => +item).filter((item: any) => item)) // _.uniq() => Set
+      for (let id of moduleIds) {
+        let module = await Module.findByPk(id, {
+          attributes: { exclude: [] },
+        } as any)
+        if (!module) continue
+        module.interfaces = await Interface.findAll<Interface>({
+          attributes: { exclude: [] },
+          where: {
+            repositoryId: module.repositoryId,
+            moduleId: module.id
+          },
+          include: [
+            QueryInclude.Properties,
+          ],
+        } as any)
+        modules.push(module);
+      }
+      repository.modules = modules;
+      return repository
+    } else {
+      return await Repository.findByPk(id, {
+        include: [
+          {
+            model: Module,
+            as: 'modules',
+            include: [
+              {
+                model: Interface,
+                as: 'interfaces',
+                include: [
+                  {
+                    model: Property,
+                    as: 'properties'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      })
+    }
   }
 
   public static async getInterfaceJSONData(id: number) {

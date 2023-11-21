@@ -1,4 +1,4 @@
-import { Repository, Interface, Module, Property } from '../../models'
+import RepositoryService from '../../service/repository'
 import dedent from '../../helpers/dedent'
 import * as moment from 'moment'
 import { asTree } from 'treeify'
@@ -24,27 +24,8 @@ const arrayToTree = (list: any[]): any => {
 }
 
 export default class PostmanService {
-  public static async export(repositoryId: number, origin: string): Promise<string> {
-    const repo = await Repository.findByPk(repositoryId, {
-      include: [
-        {
-          model: Module,
-          as: 'modules',
-          include: [
-            {
-              model: Interface,
-              as: 'interfaces',
-              include: [
-                {
-                  model: Property,
-                  as: 'properties'
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    })
+  public static async export(repositoryId: number, origin: string,moduleId?:string): Promise<string> {
+    const repo = await RepositoryService.getRepositoryModuleData(repositoryId,moduleId);
 
     const result = dedent`
     ***本文档由 Rap2 (https://github.com/thx/rap2-delos) 生成***

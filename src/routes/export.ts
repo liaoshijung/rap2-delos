@@ -2,11 +2,12 @@ import router from './router'
 import { COMMON_ERROR_RES } from './utils/const'
 import PostmanService from '../service/export/postman'
 import MarkdownService from '../service/export/markdown'
+import RepositoryService from '../service/repository'
 // import PDFService from '../service/export/pdf'
 import * as moment from 'moment'
 import DocxService from '../service/export/docx'
 import { AccessUtils, ACCESS_TYPE } from './utils/access'
-import {Interface, Module, Property, QueryInclude, Repository} from '../models/'
+import {Interface, Module,Repository} from '../models/'
 import Tree from "./utils/tree"
 
 const generateModulePlugin = (protocol: any, host: any,rpoName:string, module: Module) => {
@@ -107,11 +108,13 @@ const toCamelUpperCase = (str: string) => {
 
 router.get('/export/postman', async ctx => {
   const repoId = +ctx.query.id
+  const moduleId = ctx.query.mod
   if (
     !(await AccessUtils.canUserAccess(
       ACCESS_TYPE.REPOSITORY_GET,
       ctx.session.id,
-      repoId
+      repoId,
+      ctx.query.token as string
     ))
   ) {
     ctx.body = COMMON_ERROR_RES.ACCESS_DENY
@@ -121,7 +124,7 @@ router.get('/export/postman', async ctx => {
     ctx.data = COMMON_ERROR_RES.ERROR_PARAMS
   }
   const repository = await Repository.findByPk(repoId)
-  ctx.body = await PostmanService.export(repoId)
+  ctx.body = await PostmanService.export(repoId,moduleId as string)
   ctx.set(
     'Content-Disposition',
     `attachment; filename="RAP-${encodeURI(
@@ -136,11 +139,13 @@ router.get('/export/postman', async ctx => {
 
 router.get('/export/markdown', async ctx => {
   const repoId = +ctx.query.id
+  const moduleId = ctx.query.mod
   if (
     !(await AccessUtils.canUserAccess(
       ACCESS_TYPE.REPOSITORY_GET,
       ctx.session.id,
-      repoId
+      repoId,
+      ctx.query.token as string
     ))
   ) {
     ctx.body = COMMON_ERROR_RES.ACCESS_DENY
@@ -149,16 +154,18 @@ router.get('/export/markdown', async ctx => {
   if (!(repoId > 0)) {
     ctx.data = COMMON_ERROR_RES.ERROR_PARAMS
   }
-  ctx.body = await MarkdownService.export(repoId, ctx.query.origin as string)
+  ctx.body = await MarkdownService.export(repoId, ctx.query.origin as string,moduleId as string)
 })
 
 router.get('/export/docx', async ctx => {
   const repoId = +ctx.query.id
+  const moduleId = ctx.query.mod
   if (
     !(await AccessUtils.canUserAccess(
       ACCESS_TYPE.REPOSITORY_GET,
       ctx.session.id,
-      repoId
+      repoId,
+      ctx.query.token as string
     ))
   ) {
     ctx.body = COMMON_ERROR_RES.ACCESS_DENY
@@ -168,7 +175,7 @@ router.get('/export/docx', async ctx => {
     ctx.data = COMMON_ERROR_RES.ERROR_PARAMS
   }
   const repository = await Repository.findByPk(repoId)
-  ctx.body = await DocxService.export(repoId, ctx.query.origin as string)
+  ctx.body = await DocxService.export(repoId, ctx.query.origin as string,moduleId as string)
   ctx.set(
     'Content-Disposition',
     `attachment; filename="RAP-${encodeURI(
@@ -198,53 +205,10 @@ router.get('/export/interface', async (ctx) => {
     ctx.data = COMMON_ERROR_RES.ERROR_PARAMS
   }
   const repository = await Repository.findByPk(repoId)
-  const moduleId = ctx.query.mod
-  let modules = [];
-  if(moduleId){
-    let moduleIds = new Set<number>((<string>moduleId).split(',').map((item: string) => +item).filter((item: any) => item)) // _.uniq() => Set
-    for (let id of moduleIds){
-      let module = await Module.findByPk(id, {
-        attributes: { exclude: [] },
-      } as any)
-      if (!module) continue
-      module.interfaces = await Interface.findAll<Interface>({
-        attributes: { exclude: [] },
-        where: {
-          repositoryId: module.repositoryId,
-          moduleId: module.id
-        },
-        include: [
-          QueryInclude.Properties,
-        ],
-      } as any)
-      modules.push(module);
-    }
+  const moduleId = ctx.query.mod;
 
-  }else{
-    const repo = await Repository.findByPk(repoId, {
-      include: [
-        {
-          model: Module,
-          as: 'modules',
-          include: [
-            {
-              model: Interface,
-              as: 'interfaces',
-              include: [
-                {
-                  model: Property,
-                  as: 'properties'
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    })
-    if(repo){
-      modules = repo.modules
-    }
-  }
+  let repo = await RepositoryService.getRepositoryModuleData(repoId,moduleId as string);
+  let modules = repo.modules;
   let result = []
   let baseResult = `
 interface BaseRequest extends Record<string, any> {

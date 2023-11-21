@@ -12,10 +12,10 @@ const config: IConfigOptions = {
   },
   db: {
     dialect: 'mysql',
-    host: process.env.MYSQL_URL ?? '192.168.8.15',
+    host: process.env.MYSQL_URL ?? '127.0.0.1',
     port: (process.env.MYSQL_PORT && parseInt(process.env.MYSQL_PORT)) || 3306,
     username: process.env.MYSQL_USERNAME ?? 'rap2',
-    password: process.env.MYSQL_PASSWD ?? 'rap2.foxdev',
+    password: process.env.MYSQL_PASSWD ?? 'rap2',
     database: process.env.MYSQL_SCHEMA ?? 'rap2',
     pool: {
       max: 10,
@@ -28,8 +28,8 @@ const config: IConfigOptions = {
     }
   },
   redis: {
-    host: process.env.REDIS_URL || '172.10.62.2',
-    port: (process.env.REDIS_PORT && parseInt(process.env.REDIS_PORT)) || 31865,
+    host: process.env.REDIS_URL || '172.10.63.61',
+    port: (process.env.REDIS_PORT && parseInt(process.env.REDIS_PORT)) || 6379,
     password: 'foxhis'
   },
   mail: {
