@@ -6,9 +6,7 @@ import {
 } from 'ldapts/errors/resultCodeErrors'
 
 console.log(config.ldapLogin.server)
-const ldapClient = new Client({
-  url: config.ldapLogin.server
-})
+
 const ldapQuery = async (user: { username: string | '', password: string | undefined }) => {
   const result = {
     success: true,
@@ -16,9 +14,13 @@ const ldapQuery = async (user: { username: string | '', password: string | undef
     name: '',
     mail: ''
   }
+  let ldapClient = new Client({
+    url: config.ldapLogin.server
+  })
 // ldapsearch -x -H ldap://ldap.forumsys.com:389 -D "cn=read-only-admin,dc=example,dc=com" -w password -b "dc=example,dc=com" "uid=einstein"
   try {
     console.log(user)
+
     await ldapClient.bind(user.username, user.password)
 
     const searchResult = await ldapClient.search('dc=foxhis,dc=local', {
