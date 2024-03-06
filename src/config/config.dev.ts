@@ -1,7 +1,7 @@
-import { IConfigOptions } from '../types'
+import { IConfigOptions } from "../types"
 
-const config: IConfigOptions = {
-  version: 'v2.9.0',
+let config: IConfigOptions = {
+  version: '2.9.0',
   serve: {
     port: (process.env.SERVE_PORT && parseInt(process.env.SERVE_PORT)) || 8080,
     path: '',
@@ -11,40 +11,37 @@ const config: IConfigOptions = {
     key: 'rap2:sess',
   },
   db: {
-    dialect: 'mysql',
-    host: process.env.MYSQL_URL ?? '127.0.0.1',
+    dialect: "mysql",
+    host: process.env.MYSQL_URL || "localhost",
     port: (process.env.MYSQL_PORT && parseInt(process.env.MYSQL_PORT)) || 3306,
-    username: process.env.MYSQL_USERNAME ?? 'rap2',
-    password: process.env.MYSQL_PASSWD ?? 'rap2',
-    database: process.env.MYSQL_SCHEMA ?? 'rap2',
+    username: process.env.MYSQL_USERNAME || "root",
+    password: process.env.MYSQL_PASSWD || "",
+    database: process.env.MYSQL_SCHEMA || "RAP2_DELOS_APP_LOCAL",
     pool: {
-      max: 10,
+      max: 5,
       min: 0,
       idle: 10000,
     },
-    logging: false,
-    dialectOptions: {
-      connectTimeout: 20000
-    }
+    logging: false
   },
   redis: {
-    host: process.env.REDIS_URL || '172.10.63.61',
+    host: process.env.REDIS_URL || 'localhost',
     port: (process.env.REDIS_PORT && parseInt(process.env.REDIS_PORT)) || 6379,
-    password: 'foxhis'
+    // password: ''
   },
   mail: {
-    host: process.env.MAIL_HOST ?? "smtp.aliyun.com",
-    port: process.env.MAIL_PORT ?? 465,
-    secure: process.env.MAIL_SECURE ?? true,
+    host: process.env.MAIL_HOST ?? "smtp-mail.outlook.com",
+    port: process.env.MAIL_PORT ?? 587,
+    secure: process.env.MAIL_SECURE ?? false,
     auth: {
-      user: process.env.MAIL_USER ?? "rap2org@service.alibaba.com",
+      user: process.env.MAIL_USER ?? "",
       pass: process.env.MAIL_PASS ?? ""
     }
   },
+  mailSender: process.env.MAIL_SENDER ?? "",
   ldapLogin: {
-    server: process.env.LDAP_SERVER ?? 'ldap:172.10.254.2:389/dc=foxhis,dc=local',
+    server: process.env.LDAP_SERVER ?? 'ldap://127.0.0.1',
   },
-  mailSender: process.env.MAIL_SENDER ?? 'rap2org@service.alibaba.com',
 }
 
 export default config
