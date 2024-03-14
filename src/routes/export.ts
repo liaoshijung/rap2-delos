@@ -30,16 +30,16 @@ const generateModulePlugin = (protocol: any, host: any,rpoName:string, module: M
       case 'Object':
         if (item.children) {
           return `${name}:{
-             ${item.children.map((child: any) => {return parseItemType(child)}).join('\n          ')}
-          }`
+        ${item.children.map((child: any) => {return parseItemType(child)}).join('\n        ')}
+     }`
         } else {
           return `${name}: any`
         }
       case 'Array':
         if (item.children) {
           return `${name}:{
-            ${item.children.map((child: any) => {return parseItemType(child)}).join('\n          ')}
-            }[]`
+        ${item.children.map((child: any) => {return parseItemType(child)}).join('\n        ')}
+     }[]`
         } else {
           return `${name}: any[]`
         }
@@ -59,34 +59,34 @@ const generateModulePlugin = (protocol: any, host: any,rpoName:string, module: M
  * 仓库数据 ${protocol}://${host}/repository/get?id=${module.repositoryId}
  */
 
-  export namespace ${moduleName}{
-    export const apis = {
+export namespace ${moduleName}{
+  export const apis = {
     ${module.interfaces.map((itf: Interface) =>
       `${itf.urlName}:{ server:'${rpoName}', id: ${itf.id}, name: '${itf.name}', method: '${itf.method}', path: '${itf.url}'}`
-    ).join(',\n      ')}
-    }
+    ).join(',\n    ')}
+  }
   
     ${module.interfaces.map((itf: Interface) =>{
       let result = ``;
       if(itf.request.children.length>0){
         result= result +`export interface ${toCamelUpperCase(itf.urlName)}Request extends BaseRequest{
-      ${itf.request.children.map((child: any) => parseItemType(child)).join('\n  ')}
-    }\n    `
+      ${itf.request.children.map((child: any) => parseItemType(child)).join('\n      ')}
+    }\n   `
       }else{
-        result= result +(`export type ${toCamelUpperCase(itf.urlName)}Request = BaseRequest\n  `)
+        result= result +(`export type ${toCamelUpperCase(itf.urlName)}Request = BaseRequest\n    `)
       }
         if(itf.response.children.length>0){
           result= result +(`export interface ${toCamelUpperCase(itf.urlName)}Response extends BaseResponse{
-      ${itf.response.children.map((child: any) => parseItemType(child)).join('\n  ')}
+      ${itf.response.children.map((child: any) => parseItemType(child)).join('\n      ')}
     }`)
         }else{
-          result= result +(`export type ${toCamelUpperCase(itf.urlName)}Response = BaseResponse\n  `)
+          result= result +(`export type ${toCamelUpperCase(itf.urlName)}Response = BaseResponse\n    `)
         }
         return result
   }
 
   ).join('\n    ')}
-    export interface ${moduleName}APISchema extends APISchema {
+  export interface ${moduleName}APISchema extends APISchema {
     ${module.interfaces.map((itf: Interface) =>
       `    ${itf.urlName}:{ request: ${itf.urlName}Request,response: ${itf.urlName}Response }`
   ).join('\n    ')}
@@ -212,15 +212,15 @@ router.get('/export/interface', async (ctx) => {
   let result = []
   let baseResult = `
 interface BaseRequest extends Record<string, any> {
-    groupid:string,
-    hotelid?:string,
-    username?:string,
-    role?:string
+    groupid?: string,
+    hotelid?: string,
+    username?: string,
+    role?: string
 }
 
 interface BaseResponse extends Record<string, any> {
-    errorCode:string | '0',
-    errorMessage?:string,
+    errorCode: string | '0',
+    errorMessage?: string,
 }
 
 type APISchema = Record<string, {
@@ -231,12 +231,15 @@ type APISchema = Record<string, {
   result.push(baseResult)
   for (let module of modules) {
     if (module.url) {
-      module.urlName = toCamelUpperCase(module.url.substr(1))
+      module.urlName = toCamelUpperCase(module.url.substring(1))
     }
     module.interfaces.forEach(itf => {
-      itf.urlName = toCamelUpperCase(itf.url.substr(itf.url.lastIndexOf('/') + 1))
+      itf.urlName = toCamelUpperCase(itf.url.substring(itf.url.lastIndexOf('/') + 1))
       itf.request = Tree.ArrayToTree(itf.properties.filter(item => item.scope === 'request'))
       itf.response = Tree.ArrayToTree(itf.properties.filter(item => item.scope === 'response'))
+      if(itf.url.indexOf(module.url)<0){
+        itf.url = module.url + itf.url
+      }
     })
     // 修复 协议总是 http
     // https://lark.alipay.com/login-session/unity-login/xp92ap
