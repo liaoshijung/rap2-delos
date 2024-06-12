@@ -225,8 +225,11 @@ export default class Tree {
 
     // This makes the global object available in the context as `global`. We use `derefInto()` here
     // because otherwise `global` would actually be a Reference{} object in the new isolate.
-    jail.setSync('mock', Mock.mock);
-    jail.setSync('template', template,{reference:true});
+    jail.setSync('template', template, { reference: true });
+    jail.setSync('global', jail.derefInto());
+    vm.evalClosureSync(`global.mock = function(...args) {
+        $0.applySync(undefined, args, { arguments: { copy: true } });
+    }`, [ Mock.mock ], { arguments: { reference: true } });
     try {
       let data: any = vm.evalSync('mock(template)')
       let keys = Object.keys(data)
