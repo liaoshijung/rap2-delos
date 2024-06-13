@@ -2,10 +2,8 @@ import { Property } from '../../models'
 import * as _ from 'underscore'
 import * as Mock from 'mockjs'
 
-const ivm = require('isolated-vm');
-const isolate = new ivm.Isolate({ memoryLimit: 128 });
-
 const { RE_KEY } = require('mockjs/src/mock/constant')
+const vm = require('vm');
 
 export default class Tree {
   public static ArrayToTree(list: Property[]) {
@@ -97,7 +95,6 @@ export default class Tree {
 
   // TODO 2.x 和前端重复了
   public static TreeToTemplate(tree: any) {
-    const vm = isolate.createContextSync();
     function parse(item: any, result: any) {
       let rule = item.rule ? '|' + item.rule : ''
       let value = item.value
@@ -108,7 +105,7 @@ export default class Tree {
         !!rule
       ) {
         try {
-          result[item.name + rule] = vm.evalSync(`(${item.value})`)
+          result[item.name + rule] = vm.runInContext(`(${item.value})`)
         } catch (e:any) {
           result[item.name + rule] = item.value
         }
@@ -134,7 +131,7 @@ export default class Tree {
             let fmt = rule
             if (rule === '') fmt = 'yyyy-MM-dd hh:mm:ss'
             if (/(y+)/.test(fmt)) {
-              fmt = fmt.replace(RegExp.$1, (String(date.getFullYear())).substr(4 - RegExp.$1.length))
+              fmt = fmt.replace(RegExp.$1, (String(date.getFullYear())).substring(4 - RegExp.$1.length))
             }
             let o = {
               'M+': date.getMonth() + 1,
@@ -167,7 +164,7 @@ export default class Tree {
           case 'Function':
           case 'RegExp':
             try {
-              result[item.name + rule] = vm.evalSync('(' + item.value + ')')
+              result[item.name + rule] = vm.runInContext('(' + item.value + ')')
             } catch (e:any) {
               console.warn(
                 `TreeToTemplate ${e.message}: ${item.type} { ${item.name}${rule}: ${item.value} }`,
@@ -178,7 +175,7 @@ export default class Tree {
           case 'Object':
             if (item.value) {
               try {
-                result[item.name + rule] = vm.evalSync(`(${item.value})`)
+                result[item.name + rule] = vm.runInContext(`(${item.value})`)
               } catch (e:any) {
                 result[item.name + rule] = item.value
               }
@@ -192,7 +189,7 @@ export default class Tree {
           case 'Array':
             if (item.value) {
               try {
-                result[item.name + rule] = vm.evalSync(`(${item.value})`)
+                result[item.name + rule] = vm.runInContext(`(${item.value})`)
               } catch (e:any) {
                 result[item.name + rule] = item.value
               }
@@ -220,18 +217,12 @@ export default class Tree {
   public static TemplateToData(template: any) {
     // 数据模板 template 中可能含有攻击代码，例如死循环，所以在沙箱中生成最终数据
     // https://nodejs.org/dist/latest-v7.x/docs/api/vm.html
-    const vm = isolate.createContextSync();
-    const jail = vm.global;
 
-    // This makes the global object available in the context as `global`. We use `derefInto()` here
-    // because otherwise `global` would actually be a Reference{} object in the new isolate.
-    jail.setSync('template', template, { reference: true });
-    jail.setSync('global', jail.derefInto());
-    vm.evalClosureSync(`global.mock = function(...args) {
-        $0.applySync(undefined, args, { arguments: { copy: true } });
-    }`, [ Mock.mock ], { arguments: { reference: true } });
+    const context = { mock: Mock.mock };
+    vm.createContext(context);
+    
     try {
-      let data: any = vm.evalSync('mock(template)')
+      let data: any = vm.runInContext('mock(template)',template)
       let keys = Object.keys(data)
       if (keys.length === 1 && keys[0] === '__root__') data = data.__root__
       return data

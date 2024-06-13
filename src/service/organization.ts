@@ -66,6 +66,11 @@ export default class OrganizationService {
         FROM Organizations o
         JOIN organizations_members om ON o.id = om.organizationId
         WHERE om.userId = ${curUserId}
+        UNION
+        SELECT o.id, o.name
+        FROM Organizations o
+        JOIN organizations_readers om ON o.id = om.organizationId
+        WHERE om.userId = ${curUserId}
       ) as result
       ${query ? `WHERE id = '${query}' OR name LIKE '%${query}%'` : ''}
       ORDER BY id desc

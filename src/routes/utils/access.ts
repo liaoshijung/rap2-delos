@@ -1,6 +1,6 @@
 import OrganizationService from '../../service/organization'
 import RepositoryService from '../../service/repository'
-import { Module, Interface, Property } from '../../models'
+import { Module, Interface, Property, User } from '../../models'
 
 export enum ACCESS_TYPE {
   ORGANIZATION_GET,
@@ -27,6 +27,10 @@ export class AccessUtils {
   ): Promise<boolean> {
     // 测试模式无权限
     if (inTestMode) {
+      return true
+    }
+
+    if(await this.isAdmin(curUserId)){
       return true
     }
 
@@ -64,10 +68,11 @@ export class AccessUtils {
     return false
   }
 
-  public static isAdmin(curUserId: number) {
+  public static async isAdmin(curUserId: number) {
     if (inTestMode) {
       return true
     }
-    return curUserId === 1
+    const user = await User.findByPk(curUserId)
+    return user.role === 1
   }
 }

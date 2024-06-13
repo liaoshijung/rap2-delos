@@ -10,7 +10,7 @@
     "build": "rimraf -rf dist/ && tsc",
     "test": "cross-env NODE_ENV=development cross-env TEST_MODE=true nyc mocha test/**/*.js",
     "check": "echo \"Checking...\" && tsc && npm run lint",
-    "dev": "cross-env NODE_ENV=development nodemon --watch scripts --watch dist dist/scripts/dev.js",
+    "dev": "cross-env NODE_ENV=development nodemon  --watch scripts --watch dist dist/scripts/dev.js",
     "create-db": "cross-env NODE_ENV=development node dist/scripts/initSchema",
     "start": "cross-env NODE_ENV=production pm2 start dist/dispatch.js --name=rap-server-delos",
     "lint": "echo \"TSLint checking...\" && eslint -c .eslintrc.json ",
@@ -68,8 +68,7 @@
     "svg-captcha": "^1.4.0",
     "treeify": "^1.1.0",
     "underscore": "^1.9.1",
-    "urllib": "^2.34.1",
-    "isolated-vm": "^4.7.2"
+    "urllib": "^2.34.1"
   },
   "devDependencies": {
     "@types/chai": "^4.2.10",

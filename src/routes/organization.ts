@@ -54,6 +54,9 @@ router.get('/organization/list', async (ctx) => {
     ],
     order: [['updatedAt', 'desc']]
   }
+  if (await AccessUtils.isAdmin(ctx.session.id)) {
+    delete options.where;
+  }
   const organizations = await Organization.findAll(options)
   ctx.body = {
     data: organizations,

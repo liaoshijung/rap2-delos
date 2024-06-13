@@ -88,6 +88,10 @@ router.get('/account/info', async (ctx) => {
       attributes: QueryInclude.User.attributes
     }) : undefined
   }
+  if(ctx.body!==undefined){
+    delete ctx.body.password
+    ctx.body.isAdmin = ctx.body.role ==='1'
+  }
 })
 
 router.post('/account/login', async (ctx) => {
@@ -110,6 +114,7 @@ router.post('/account/login', async (ctx) => {
         ctx.session.id = result.id
         ctx.session.fullname = result.fullname
         ctx.session.email = result.email
+        ctx.session.isAdmin = result.role == '1'
         let app: any = ctx.app
         app.counter.users[result.fullname] = true
 
@@ -126,11 +131,15 @@ router.post('/account/login', async (ctx) => {
       ctx.session.id = result.id
       ctx.session.fullname = result.fullname
       ctx.session.email = result.email
+      ctx.session.isAdmin = result.role == '1'
       let app: any = ctx.app
       app.counter.users[result.fullname] = true
     } else {
       errMsg = '账号或密码错误'
     }
+  }
+  if(result){
+    result.password = undefined;
   }
   ctx.body = {
     data: result ? result : { errMsg },
@@ -212,7 +221,7 @@ router.post('/account/update', async (ctx) => {
 })
 
 router.get('/account/remove', isLoggedIn, async (ctx) => {
-  if (!AccessUtils.isAdmin(ctx.session.id)) {
+  if (!await AccessUtils.isAdmin(ctx.session.id)) {
     ctx.body = COMMON_ERROR_RES.ACCESS_DENY
     return
   }

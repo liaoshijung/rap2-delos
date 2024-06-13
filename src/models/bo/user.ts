@@ -21,6 +21,9 @@ export default class User extends Model<User> {
   @Column(DataType.STRING(128))
   email: string
 
+  @Column
+  role: number
+
   @HasMany(() => Organization, 'ownerId')
   ownedOrganizations: Organization[]
 
